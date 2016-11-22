@@ -14,6 +14,11 @@ func TestSyncQueueWithGoroutine(t *testing.T) {
 	testSyncQueue(t, q)
 }
 
+func TestSyncQueue(t *testing.T) {
+	q := NewSyncQueue()
+	testSyncQueue(t, q)
+}
+
 func testSyncQueue(t *testing.T, q SyncQueue) {
 	vals := []interface{}{}
 	for i := 0; i < SEQ_TEST_N; i++ {
