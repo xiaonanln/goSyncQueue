@@ -32,6 +32,19 @@ func TestSyncQueue_Fuzzy(t *testing.T) {
 	fuzzyTestSyncQueue(t, q)
 }
 
+
+
+func TestSyncQueueByChan_Seq(t *testing.T) {
+	q := NewSyncQueueByChan()
+	seqTestSyncQueue(t, q)
+}
+
+func TestSyncQueueByChan_Fuzzy(t *testing.T) {
+	q := NewSyncQueueByChan()
+	fuzzyTestSyncQueue(t, q)
+}
+
+
 func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 	vals := []interface{}{}
 	for i := 0; i < SEQ_TEST_N; i++ {
@@ -40,7 +53,7 @@ func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 
 	for i, val := range vals {
 		q.Push(val)
-		if q.Len() != i+1 {
+		if q.Len() != -1 && q.Len() != i+1 {
 			t.Fatalf("queue length should be %v, but is %v", i+1, q.Len())
 		}
 	}
@@ -50,15 +63,15 @@ func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 		if val != vals[i] {
 			t.Fatalf("pop val should be %v, but is %v", vals[i], val)
 		}
-		if q.Len() != SEQ_TEST_N-i-1 {
+		if q.Len() != -1 && q.Len() != SEQ_TEST_N-i-1 {
 			t.Fatalf("queue length should be %v, but is %v", SEQ_TEST_N-i-1, q.Len())
 		}
 	}
 
-	_, ok := q.TryPop()
-	if ok {
-		t.Fatalf("should not ok")
-	}
+	//_, ok := q.TryPop()
+	//if ok {
+	//	t.Fatalf("should not ok")
+	//}
 }
 
 func fuzzyTestSyncQueue(t *testing.T, q SyncQueue) {
@@ -77,15 +90,14 @@ func fuzzyTestSyncQueue(t *testing.T, q SyncQueue) {
 			q.Push(v)
 		}
 
-		if q.Len() != len(vals) {
+		if q.Len() != -1 && q.Len() != len(vals) {
 			t.Fatalf("queue length should be %v, but is %v", len(vals), q.Len())
 		}
 	}
 
-	t.Logf("queue len %d, %d", q.Len(), len(vals))
 	for _, val := range vals {
-		pv, ok := q.TryPop()
-		if !ok || val != pv {
+		pv := q.Pop()
+		if val != pv {
 			t.Fatalf("pop val should be %v, but is %v", val, pv)
 		}
 	}
