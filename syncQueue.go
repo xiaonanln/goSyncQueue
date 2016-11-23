@@ -55,6 +55,7 @@ func (q *syncQueue) TryPop() (interface{}, bool) {
 func (q *syncQueue) Push(v interface{}) {
 	q.lock.Lock()
 	q.buffer.Add(v)
+	q.popable.Signal()
 	q.lock.Unlock()
 }
 
