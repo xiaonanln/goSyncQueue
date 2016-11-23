@@ -31,3 +31,7 @@ func (q *syncQueueByChannel) Push(v interface{}) {
 func (q *syncQueueByChannel) Len() int {
 	return -1
 }
+
+func (q *syncQueueByChannel) Close() {
+	close(q.channel)
+}

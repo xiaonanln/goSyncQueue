@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	SEQ_TEST_N = 100000
+	SEQ_TEST_N   = 100000
 	FUZZY_TEST_N = 100000
 )
 
@@ -15,12 +15,10 @@ func TestSyncQueueWithGoroutine_Seq(t *testing.T) {
 	seqTestSyncQueue(t, q)
 }
 
-
 func TestSyncQueueWithGoroutine_Fuzzy(t *testing.T) {
 	q := NewSyncQueueWithGoroutine()
 	fuzzyTestSyncQueue(t, q)
 }
-
 
 func TestSyncQueue_Seq(t *testing.T) {
 	q := NewSyncQueue()
@@ -32,8 +30,6 @@ func TestSyncQueue_Fuzzy(t *testing.T) {
 	fuzzyTestSyncQueue(t, q)
 }
 
-
-
 func TestSyncQueueByChan_Seq(t *testing.T) {
 	q := NewSyncQueueByChan()
 	seqTestSyncQueue(t, q)
@@ -43,7 +39,6 @@ func TestSyncQueueByChan_Fuzzy(t *testing.T) {
 	q := NewSyncQueueByChan()
 	fuzzyTestSyncQueue(t, q)
 }
-
 
 func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 	vals := []interface{}{}
@@ -67,17 +62,13 @@ func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 			t.Fatalf("queue length should be %v, but is %v", SEQ_TEST_N-i-1, q.Len())
 		}
 	}
-
-	//_, ok := q.TryPop()
-	//if ok {
-	//	t.Fatalf("should not ok")
-	//}
+	q.Close()
 }
 
 func fuzzyTestSyncQueue(t *testing.T, q SyncQueue) {
 	vals := []interface{}{}
 
-	for i:=0;i<FUZZY_TEST_N;i++ {
+	for i := 0; i < FUZZY_TEST_N; i++ {
 		if q.Len() > 0 && rand.Float64() < 0.4 {
 			v := q.Pop()
 			if v != vals[0] {
@@ -101,4 +92,5 @@ func fuzzyTestSyncQueue(t *testing.T, q SyncQueue) {
 			t.Fatalf("pop val should be %v, but is %v", val, pv)
 		}
 	}
+	q.Close()
 }

@@ -64,3 +64,6 @@ func (q *syncQueue) Len() (l int) {
 	q.lock.Unlock()
 	return
 }
+
+func (q *syncQueue) Close() {
+}
