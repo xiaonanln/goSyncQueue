@@ -6,32 +6,87 @@ import (
 )
 
 const (
-	SEQ_TEST_N = 1000000
+	SEQ_TEST_N = 100000
+	FUZZY_TEST_N = 100000
 )
 
-func TestSyncQueueWithGoroutine(t *testing.T) {
+func TestSyncQueueWithGoroutine_Seq(t *testing.T) {
 	q := NewSyncQueueWithGoroutine()
-	testSyncQueue(t, q)
+	seqTestSyncQueue(t, q)
 }
 
-func TestSyncQueue(t *testing.T) {
+
+func TestSyncQueueWithGoroutine_Fuzzy(t *testing.T) {
+	q := NewSyncQueueWithGoroutine()
+	fuzzyTestSyncQueue(t, q)
+}
+
+
+func TestSyncQueue_Seq(t *testing.T) {
 	q := NewSyncQueue()
-	testSyncQueue(t, q)
+	seqTestSyncQueue(t, q)
 }
 
-func testSyncQueue(t *testing.T, q SyncQueue) {
+func TestSyncQueue_Fuzzy(t *testing.T) {
+	q := NewSyncQueue()
+	fuzzyTestSyncQueue(t, q)
+}
+
+func seqTestSyncQueue(t *testing.T, q SyncQueue) {
 	vals := []interface{}{}
 	for i := 0; i < SEQ_TEST_N; i++ {
 		vals = append(vals, rand.Int())
 	}
 
-	for _, val := range vals {
+	for i, val := range vals {
 		q.Push(val)
+		if q.Len() != i+1 {
+			t.Fatalf("queue length should be %v, but is %v", i+1, q.Len())
+		}
 	}
+
 	for i := 0; i < SEQ_TEST_N; i++ {
 		val := q.Pop()
 		if val != vals[i] {
-			t.FailNow()
+			t.Fatalf("pop val should be %v, but is %v", vals[i], val)
+		}
+		if q.Len() != SEQ_TEST_N-i-1 {
+			t.Fatalf("queue length should be %v, but is %v", SEQ_TEST_N-i-1, q.Len())
+		}
+	}
+
+	_, ok := q.TryPop()
+	if ok {
+		t.Fatalf("should not ok")
+	}
+}
+
+func fuzzyTestSyncQueue(t *testing.T, q SyncQueue) {
+	vals := []interface{}{}
+
+	for i:=0;i<FUZZY_TEST_N;i++ {
+		if q.Len() > 0 && rand.Float64() < 0.4 {
+			v := q.Pop()
+			if v != vals[0] {
+				t.Fatalf("pop val should be %v, but is %v", vals[i], v)
+			}
+			vals = vals[1:]
+		} else {
+			v := rand.Int()
+			vals = append(vals, v)
+			q.Push(v)
+		}
+
+		if q.Len() != len(vals) {
+			t.Fatalf("queue length should be %v, but is %v", len(vals), q.Len())
+		}
+	}
+
+	t.Logf("queue len %d, %d", q.Len(), len(vals))
+	for _, val := range vals {
+		pv, ok := q.TryPop()
+		if !ok || val != pv {
+			t.Fatalf("pop val should be %v, but is %v", val, pv)
 		}
 	}
 }

@@ -24,19 +24,43 @@ func (q *syncQueue) Pop() interface{} {
 	c := q.popable
 	buffer := q.buffer
 
-	c.L.Lock()
+	q.lock.Lock()
 	for buffer.Length() == 0 {
 		c.Wait()
 	}
 
-	c.L.Unlock()
-	return nil
+	v := buffer.Peek()
+	buffer.Remove()
+
+	q.lock.Unlock()
+	return v
 }
 
 func (q *syncQueue) TryPop() (interface{}, bool) {
-	return nil, false
+	buffer := q.buffer
+
+	q.lock.Lock()
+
+	if buffer.Length() > 0 {
+		v := buffer.Peek()
+		buffer.Remove()
+		q.lock.Unlock()
+		return v, true
+	} else {
+		q.lock.Unlock()
+		return nil, false
+	}
 }
 
 func (q *syncQueue) Push(v interface{}) {
+	q.lock.Lock()
 	q.buffer.Add(v)
+	q.lock.Unlock()
+}
+
+func (q *syncQueue) Len() (l int) {
+	q.lock.Lock()
+	l = q.buffer.Length()
+	q.lock.Unlock()
+	return
 }
